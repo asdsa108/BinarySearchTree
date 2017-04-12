@@ -20,24 +20,20 @@ public class AvlTree<T> {
         this.root = null;
     }
 
-    private static class AvlNode<T> {
+    public AvlNode<T> insert(T x) {
+        return this.insert(x, this.root);
+    }
 
-        AvlNode(T theElement) {
-            this(theElement, null, null);
-        }
+    public AvlNode<T> remove(T x) {
+        return this.remove(x, this.root);
+    }
 
-        AvlNode(T theElement, AvlNode<T> lt, AvlNode<T> rt) {
-            this.theElement = theElement;
-            this.left = lt;
-            this.right = rt;
-            this.height = 0;
-        }
+    public AvlNode<T> findMin() {
+        return this.findMin(root);
+    }
 
-        T theElement;
-        AvlNode<T> left;
-        AvlNode<T> right;
-        int height;
-
+    public AvlNode<T> findMax() {
+        return this.findMax(root);
     }
 
     private int myCompare(T lt, T rt) {
@@ -51,6 +47,17 @@ public class AvlTree<T> {
     //返回节点高度
     private int height(AvlNode<T> t) {
         return t == null ? -1 : t.height;
+    }
+
+    //查找
+    private boolean contains(T x, AvlNode<T> t) {
+        if (null == t) return false;//没有找到
+
+        int compareResult = myCompare(x, t.theElement);
+
+        if (0 > compareResult) return contains(x, t.left);
+        else if (0 < compareResult) return contains(x, t.right);
+        else return true;
     }
 
     //插入，在返回节点前将节点进行平衡
@@ -70,7 +77,43 @@ public class AvlTree<T> {
         return balance(t);
     }
 
-    //平衡节点并更新节点高度
+    //删除，平衡节点
+    private AvlNode<T> remove(T x, AvlNode<T> t) {
+        if (null == t) return t;//未找到元素
+
+        int compareResult = myCompare(x, t.theElement);
+
+        if (0 > compareResult) {
+            //大于小于的情形，则继续向左或右子节点进行查找删除
+            t = remove(x, t.left);
+        } else if (0 < compareResult) {
+            t = remove(x, t.right);
+        } else if (null != t.left && null != t.right) {
+            //当找到数据，且该节点左右子节点都不为空时
+            t.theElement = findMin(t.right).theElement;
+            t.right = remove(t.theElement, t.right);
+        } else {
+            //当找到数据，且该节点只有一个子节点时
+            t = null == t.left ? t.right : t.left;
+        }
+
+        return balance(t);
+    }
+
+    private AvlNode<T> findMin(AvlNode<T> t) {
+        if (null == t) return null;
+        else if (null == t.left) return t;
+        else return findMin(t.left);
+    }
+
+    private AvlNode<T> findMax(AvlNode<T> t) {
+        if (null == t) return null;
+        if (null == t.right) return t;
+        else return findMax(t.right);
+    }
+
+    //平衡节点并更新节点高度，当节点是平衡的，高度会被更新
+    //在递归的删除或插入时，被更新的节点会继续作为他父节点判断高度的依据
     private AvlNode<T> balance(AvlNode<T> t) {
         if (null == t) {
             return t;
@@ -81,6 +124,7 @@ public class AvlTree<T> {
             if (height(t.left.left) >= height(t.left.right)) {
                 //当左子节点的左子节点高度大于等于它的右子节点高度时，说明不平衡是发生在外侧的
                 //(即引起不平衡的节点是插入到左子节点的左子树下)
+                //(或删除导致不平衡时，可能出现高度相等的情形，这时两种旋转都可以，因此用单旋转而不是双旋转)
                 //使用(左子节点为轴向右)单旋转进行平衡
                 t = rotateWithLeftChild(t);
             } else {
@@ -94,6 +138,7 @@ public class AvlTree<T> {
             if (height(t.right.right) >= height(t.right.left)) {
                 //当右子节点的右子节点高度大于等于它的左子节点高度时，说明不平衡是发生在外侧的
                 //(即引起不平衡的节点是插入到右子节点的右子树下)
+                //(或删除导致不平衡时，可能出现高度相等的情形，这时两种旋转都可以，因此用单旋转而不是双旋转)
                 //使用(右子节点为轴向左)单旋转进行平衡
                 t = rotateWithRightChild(t);
             } else {
@@ -109,23 +154,58 @@ public class AvlTree<T> {
         return t;
     }
 
-    //节点(以左子节点为轴)向右单旋转
+    //左侧不平衡时，节点(以左子节点为轴)向右单旋转
     private AvlNode<T> rotateWithLeftChild(AvlNode<T> k2) {
-
+        //将k2左子节点k1提到根部
+        AvlNode<T> k1 = k2.left;
+        //左子节点k1的右子节点转移到k2左子节点
+        k2.left = k1.right;
+        //k2转移到左子节点k1的右子节点
+        k1.right = k2;
+        k1.height = Math.max(height(k2.left), height(k2.right)) + 1;
+        k2.height = Math.max(height(k1.left), k2.height) + 1;
+        return k1;
     }
 
-    //节点(以右子节点为轴)向左单旋转
+    //右侧不平衡时，节点(以右子节点为轴)向左单旋转
     private AvlNode<T> rotateWithRightChild(AvlNode<T> k2) {
-
+        AvlNode<T> k1 = k2.right;
+        k2.right = k1.left;
+        k1.left = k2;
+        k1.height = Math.max(height(k2.left), height(k2.right)) + 1;
+        k2.height = Math.max(height(k1.right), k2.height) + 1;
+        return k1;
     }
 
-    //节点双旋转，一次左子节点(以它的右子节点为轴)向左旋转，一次本身(以左子节点为轴)向右旋转
+    //左侧不平衡时，节点双旋转，一次左子节点(以它的右子节点为轴)向左旋转，一次本身(以左子节点为轴)向右旋转
     private AvlNode<T> doubleWithLeftChild(AvlNode<T> k3) {
-
+        k3.left = rotateWithRightChild(k3.left);
+        return rotateWithLeftChild(k3);
     }
 
-    //节点双旋转，一次右子节点(以它的左子节点为轴)向右旋转，一次本身(以右子节点为轴)向左旋转
+    //右侧不平衡时，节点双旋转，一次右子节点(以它的左子节点为轴)向右旋转，一次本身(以右子节点为轴)向左旋转
     private AvlNode<T> doubleWithRightChild(AvlNode<T> k3) {
-
+        k3.right = rotateWithLeftChild(k3.right);
+        return rotateWithRightChild(k3);
     }
+
+
+    private static class AvlNode<T> {
+        AvlNode(T theElement) {
+            this(theElement, null, null);
+        }
+
+        AvlNode(T theElement, AvlNode<T> lt, AvlNode<T> rt) {
+            this.theElement = theElement;
+            this.left = lt;
+            this.right = rt;
+            this.height = 0;
+        }
+
+        T theElement;
+        AvlNode<T> left;
+        AvlNode<T> right;
+        int height;
+    }
+
 }

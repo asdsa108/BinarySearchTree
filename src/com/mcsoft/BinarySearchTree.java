@@ -131,7 +131,7 @@ public class BinarySearchTree<T> {
         } else if (0 < compareResult) {
             t.right = remove(x, t.right);
         } else if (t.left != null && t.right != null) {
-            //当找到节点，且节点左右子节点不为空时
+            //当找到节点，且节点左右子节点都不为空时
             //这种情况需要处理子树重新连接的问题
             //这里的解决办法是：将节点值设置为右子树中最小节点的值，并移除该最小节点
             //因为最小节点不会有左子节点，因此移除该节点将非常简单
