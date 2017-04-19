@@ -75,7 +75,8 @@ public class BinarySearchTree<T> {
 
     //打印树
     public void printTree() {
-        printTree(root);
+        if(isEmpty()) System.out.println("Empty tree.");
+        else printTree(root);
     }
 
     private int myCompare(T lhs, T rhs) {
@@ -149,6 +150,12 @@ public class BinarySearchTree<T> {
     }
 
     private void printTree(BinaryNode<T> t) {
+        if(null != t){
+            //按左、中、右顺序输出，这样最后输出的树就是由小到大排序的了
+            printTree(t.left);
+            System.out.println(t.theElement);
+            printTree(t.right);
+        }
     }
 
 }

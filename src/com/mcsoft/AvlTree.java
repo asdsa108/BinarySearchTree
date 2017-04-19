@@ -36,6 +36,15 @@ public class AvlTree<T> {
         return this.findMax(root);
     }
 
+    public void printTree(){
+        if(isEmpty()) System.out.println("Empty tree.");
+        else printTree(root);
+    }
+
+    public boolean isEmpty(){
+        return null == root;
+    }
+
     private int myCompare(T lt, T rt) {
         if (null != myComparator) {
             return myComparator.compare(lt, rt);
@@ -189,6 +198,14 @@ public class AvlTree<T> {
         return rotateWithRightChild(k3);
     }
 
+    private void printTree(AvlNode<T> t){
+        if(null != t){
+            //按左、中、右顺序输出，这样最后输出的树就是由小到大排序的了
+            printTree(t.left);
+            System.out.println(t.theElement);
+            printTree(t.right);
+        }
+    }
 
     private static class AvlNode<T> {
         AvlNode(T theElement) {
@@ -207,5 +224,4 @@ public class AvlTree<T> {
         AvlNode<T> right;
         int height;
     }
-
 }
